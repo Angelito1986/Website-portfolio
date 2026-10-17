@@ -2627,14 +2627,15 @@
   </audio>
 
   <!-- Interactive Equalizer Button -->
-  <button id="toggleAudioBtn" type="button" aria-label="Toggle Sound" class="flex items-center gap-2 text-xs font-mono text-[#F7F1E4] focus:outline-none">
-    <span class="flex items-end gap-[3px] h-4">
-      <span class="eq-bar w-[3px] h-2 bg-[#F5C518] rounded-full transition-all"></span>
-      <span class="eq-bar w-[3px] h-3.5 bg-[#F5C518] rounded-full transition-all"></span>
-      <span class="eq-bar w-[3px] h-1.5 bg-[#F5C518] rounded-full transition-all"></span>
-      <span class="eq-bar w-[3px] h-3 bg-[#F5C518] rounded-full transition-all"></span>
+  <button id="toggleAudioBtn" type="button" aria-label="Toggle Sound" class="flex items-center gap-2.5 text-xs font-mono text-[#F7F1E4] focus:outline-none cursor-pointer">
+    <span class="eq-container">
+      <span class="eq-bar"></span>
+      <span class="eq-bar"></span>
+      <span class="eq-bar"></span>
+      <span class="eq-bar"></span>
+      <span class="eq-bar"></span>
     </span>
-    <span id="audioLabel" class="text-xs uppercase tracking-wider text-[#B9AF9D]">Sound: Off</span>
+    <span id="audioLabel" class="text-xs uppercase tracking-wider text-[#B9AF9D] font-medium">Sound: Off</span>
   </button>
 
   <!-- Divider -->
