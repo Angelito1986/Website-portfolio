@@ -2580,6 +2580,87 @@
       btn.textContent = 'Send & Request Discovery Call';
     }
   });
+</script><!-- Floating Audio Dock -->
+<div id="audioDock" class="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-[#1C1610]/90 backdrop-blur-md border border-[#3A3020] px-4 py-2.5 rounded-full shadow-2xl transition-all hover:border-[#F5C518]">
+  
+  <!-- Audio Element -->
+  <audio id="bgAudio" loop preload="auto">
+    <source src="music.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- Interactive Equalizer Button -->
+  <button id="toggleAudioBtn" type="button" aria-label="Toggle Sound" class="flex items-center gap-2 text-xs font-mono text-[#F7F1E4] focus:outline-none">
+    <span class="flex items-end gap-[3px] h-4">
+      <span class="eq-bar w-[3px] h-2 bg-[#F5C518] rounded-full transition-all"></span>
+      <span class="eq-bar w-[3px] h-3.5 bg-[#F5C518] rounded-full transition-all"></span>
+      <span class="eq-bar w-[3px] h-1.5 bg-[#F5C518] rounded-full transition-all"></span>
+      <span class="eq-bar w-[3px] h-3 bg-[#F5C518] rounded-full transition-all"></span>
+    </span>
+    <span id="audioLabel" class="text-xs uppercase tracking-wider text-[#B9AF9D]">Sound: Off</span>
+  </button>
+
+  <!-- Divider -->
+  <div class="h-4 w-[1px] bg-[#3A3020]"></div>
+
+  <!-- Volume Slider -->
+  <input id="volumeSlider" type="range" min="0" max="1" step="0.05" value="0.2" class="w-16 accent-[#F5C518] cursor-pointer opacity-70 hover:opacity-100 transition-opacity" title="Volume" />
+</div>
+
+<script>
+  (function() {
+    const audio = document.getElementById('bgAudio');
+    const toggleBtn = document.getElementById('toggleAudioBtn');
+    const label = document.getElementById('audioLabel');
+    const slider = document.getElementById('volumeSlider');
+    const dock = document.getElementById('audioDock');
+
+    if (!audio || !toggleBtn) return;
+
+    audio.volume = 0.20;
+
+    function playAudio() {
+      audio.play().then(() => {
+        dock.classList.add('playing');
+        label.textContent = 'Sound: On';
+        label.classList.replace('text-[#B9AF9D]', 'text-[#F5C518]');
+      }).catch(err => {
+        console.warn('Playback prevented by browser policy:', err);
+      });
+    }
+
+    function pauseAudio() {
+      audio.pause();
+      dock.classList.remove('playing');
+      label.textContent = 'Sound: Off';
+      label.classList.replace('text-[#F5C518]', 'text-[#B9AF9D]');
+    }
+
+    toggleBtn.addEventListener('click', () => {
+      if (audio.paused) {
+        playAudio();
+      } else {
+        pauseAudio();
+      }
+    });
+
+    if (slider) {
+      slider.addEventListener('input', (e) => {
+        audio.volume = parseFloat(e.target.value);
+        if (audio.volume === 0 && !audio.paused) {
+          pauseAudio();
+        } else if (audio.volume > 0 && audio.paused) {
+          playAudio();
+        }
+      });
+    }
+
+    window.addEventListener('click', function onFirstInteraction() {
+      if (audio.paused) {
+        playAudio();
+      }
+      window.removeEventListener('click', onFirstInteraction);
+    }, { once: true });
+  })();
 </script>
 
 </body>
