@@ -2674,6 +2674,7 @@
       label.classList.replace('text-[#F5C518]', 'text-[#B9AF9D]');
     }
 
+    // Toggle play/pause when the button is clicked
     toggleBtn.addEventListener('click', () => {
       if (audio.paused) {
         playAudio();
@@ -2682,23 +2683,12 @@
       }
     });
 
+    // Update volume when slider is moved
     if (slider) {
       slider.addEventListener('input', (e) => {
-        audio.volume = parseFloat(e.target.value);
-        if (audio.volume === 0 && !audio.paused) {
-          pauseAudio();
-        } else if (audio.volume > 0 && audio.paused) {
-          playAudio();
-        }
+        audio.volume = e.target.value;
       });
     }
-
-    window.addEventListener('click', function onFirstInteraction() {
-      if (audio.paused) {
-        playAudio();
-      }
-      window.removeEventListener('click', onFirstInteraction);
-    }, { once: true });
   })();
 </script>
 
