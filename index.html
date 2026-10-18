@@ -2617,6 +2617,17 @@
     <svg id="musicIconOff" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H3v6h3l5 4V5z"/><path d="M22 9l-6 6M16 9l6 6"/></svg>
     <svg id="musicIconOn" class="w-5 h-5 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 010 7M18.5 5.5a9 9 0 010 13"/></svg>
   </button>
+  <div id="musicEq" aria-hidden="true" class="h-11 w-[68px] rounded-full bg-panel border border-line flex items-center justify-center shadow-[0_8px_24px_rgba(0,0,0,0.45)] transition-opacity" style="opacity:.55">
+    <div class="flex items-center justify-center gap-[3px] h-6 w-full">
+      <i class="block w-[3px] rounded-full" style="height:12%;background:#F5C518;box-shadow:0 0 6px #F5C51899;transition:height .08s linear"></i>
+      <i class="block w-[3px] rounded-full" style="height:12%;background:#FF8A00;box-shadow:0 0 6px #FF8A0099;transition:height .08s linear"></i>
+      <i class="block w-[3px] rounded-full" style="height:12%;background:#FF3D71;box-shadow:0 0 6px #FF3D7199;transition:height .08s linear"></i>
+      <i class="block w-[3px] rounded-full" style="height:12%;background:#D500F9;box-shadow:0 0 6px #D500F999;transition:height .08s linear"></i>
+      <i class="block w-[3px] rounded-full" style="height:12%;background:#2F5BFF;box-shadow:0 0 6px #2F5BFF99;transition:height .08s linear"></i>
+      <i class="block w-[3px] rounded-full" style="height:12%;background:#00E5FF;box-shadow:0 0 6px #00E5FF99;transition:height .08s linear"></i>
+      <i class="block w-[3px] rounded-full" style="height:12%;background:#00FF6A;box-shadow:0 0 6px #00FF6A99;transition:height .08s linear"></i>
+    </div>
+  </div>
   <span id="musicHint" class="hidden rounded-full bg-panel border border-line px-3 py-1.5 text-xs text-ink shadow-[0_8px_24px_rgba(0,0,0,0.45)]">Tap anywhere to start the music</span>
 </div>
 
@@ -2633,6 +2644,7 @@
 
   var BPM = 118, BEAT = 60 / BPM, S16 = BEAT / 4;
   var ctx, master, drumBus, pianoBus, padBus, gtrBus, noiseBuf, timer;
+  var analyser, eqRaf = 0, fd;
   var nextTime = 0, stepIdx = 0, bar = 0;
   var playing = false, userMuted = false, ready = false;
 
@@ -2657,6 +2669,8 @@
     var comp = ctx.createDynamicsCompressor();
     comp.threshold.value = -18; comp.ratio.value = 3; comp.attack.value = 0.01; comp.release.value = 0.2;
     master.connect(comp); comp.connect(ctx.destination);
+    analyser = ctx.createAnalyser(); analyser.fftSize = 256; analyser.smoothingTimeConstant = 0.7;
+    analyser.minDecibels = -85; analyser.maxDecibels = -25; comp.connect(analyser);
 
     drumBus = ctx.createGain(); drumBus.connect(master);
 
@@ -2788,12 +2802,43 @@
     }
   }
 
+  var EQ = document.getElementById('musicEq');
+  var eqBars = EQ ? Array.prototype.slice.call(EQ.querySelectorAll('i')) : [];
+  var BANDS = [[1, 2], [3, 4], [5, 7], [8, 12], [13, 20], [21, 32], [33, 50]];
+  var BOOST = [1, 1, 1.05, 1.15, 1.3, 1.5, 1.8];
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function eqFrame() {
+    eqRaf = requestAnimationFrame(eqFrame);
+    analyser.getByteFrequencyData(fd);
+    for (var i = 0; i < eqBars.length; i++) {
+      var a = BANDS[i][0], b = BANDS[i][1], s = 0;
+      for (var k = a; k <= b; k++) s += fd[k];
+      var v = Math.min(1, (s / ((b - a + 1) * 255)) * BOOST[i]);
+      eqBars[i].style.height = (10 + 90 * Math.pow(v, 1.3)) + '%';
+    }
+  }
+
+  function eqSet(on) {
+    if (!eqBars.length) return;
+    cancelAnimationFrame(eqRaf);
+    EQ.style.opacity = on ? '1' : '.55';
+    if (on && !reduceMotion && analyser) {
+      fd = new Uint8Array(analyser.frequencyBinCount);
+      eqFrame();
+    } else {
+      var rest = [40, 70, 55, 85, 50, 65, 35];
+      eqBars.forEach(function (bar, i) { bar.style.height = (on ? rest[i] : 12) + '%'; });
+    }
+  }
+
   function setUI(on) {
     iconOn.classList.toggle('hidden', !on);
     iconOff.classList.toggle('hidden', on);
     btn.setAttribute('aria-pressed', on ? 'true' : 'false');
     btn.setAttribute('aria-label', on ? 'Turn sound off' : 'Turn sound on');
     if (on) hint.classList.add('hidden');
+    eqSet(on);
   }
 
   function fadeTo(v, secs) {
